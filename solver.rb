@@ -27,7 +27,7 @@ class Solver
 
     def check_as_successful(values)
       values.each do |value|
-        FileUtils.mv("/tmp/funcaptcha#{value[:id]}-#{value[:option]}.jpg", "key_frames/")
+        FileUtils.mv("/tmp/funcaptcha#{value[:id]}-#{value[:option]}.jpg", "candidate_keyframes/")
       end
     end
     
