@@ -19,14 +19,21 @@ class InfojobsSession
 
     iframe_url = distil_form.css("iframe").attr("src").value
 
-    funcaptcha_frame = Nokogiri::HTML(@http.get(iframe_url).body)
-    
+    http_req = @http.get(iframe_url).body
+    funcaptcha_frame = Nokogiri::HTML(http_req)
+          
     results = []
     
     5.times do
-    
-      elements = funcaptcha_frame.css("form.imgInput-1")
-      captcha_image_1 = funcaptcha_frame.css("input.pic-1").first.attr("src")
+
+      begin    
+        elements = funcaptcha_frame.css("form.imgInput-1")
+
+        captcha_image_1 = funcaptcha_frame.css("input.pic-1").first.attr("src")
+      rescue
+        puts http_req
+        raise
+      end
       result = Solver.solve_image(captcha_image_1)
 
       results << result
@@ -42,8 +49,10 @@ class InfojobsSession
                  y: y,
                  "fc-game[session_token]" => correct_entry.css("input")[1].attr("value"),
                  "fc-game[data]" => correct_entry.css("input")[2].attr("value") }
-      
-        funcaptcha_frame = Nokogiri::HTML(@http.post(iframe_url, body: body).body)
+
+        http_req = @http.post(iframe_url, body: body).body
+        funcaptcha_frame = Nokogiri::HTML(http_req)
+        break if funcaptcha_frame.text.include?("Verificación completa")
       else
         error = true
         break
@@ -52,8 +61,9 @@ class InfojobsSession
 
     if error || funcaptcha_frame.text.include?("Al menos una de tus respuestas no es del todo correcta")
       Solver.check_as_bad_resolved(results)
+      return false
     else
-      Solver.check_as_sucessfull(results)
+      Solver.check_as_successful(results)
       token = funcaptcha_frame.css("input").attr("value")
       body = { "fc-token" => token, V: 0, RM: "GET" }
       @http.post("https://www.infojobs.net/distil_verify", body: body)

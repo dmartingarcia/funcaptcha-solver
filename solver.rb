@@ -26,7 +26,9 @@ class Solver
     end
 
     def check_as_successful(values)
-      
+      values.each do |value|
+        FileUtils.mv("/tmp/funcaptcha#{value[:id]}-#{value[:option]}.jpg", "key_frames/")
+      end
     end
     
     def check_as_bad_resolved(values)
@@ -34,6 +36,28 @@ class Solver
         Dir.glob("/tmp/funcaptcha#{value[:id]}*").each do |file|
           FileUtils.mv(file, "bad/")
         end
+      end
+    end
+
+    def discard_repeated_key_frames
+      key_frame_array = obtain_key_frame_array
+      discarded = []
+      
+      key_frame_array.each_with_index do |element1, index1|
+        key_frame_array.each_with_index do |element2, index2|
+          next if index1 <= index2
+          puts "x: #{index1}, y: #{index2}"
+
+          if element1.duplicate?(element2, threshold: 1)
+            puts "discarded"
+            discarded << element1.filename
+          end
+        end
+      end
+
+      `mkdir -p discarded`
+      discarded.each do |element|
+        FileUtils.mv(element, "discarded/")
       end
     end
 
