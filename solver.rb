@@ -78,7 +78,7 @@ class Solver
       image.combine_options do |c|
         c.background '#FFFFFF'
         c.alpha 'remove'
-        c.fuzz "30%"
+        c.fuzz "5%"
         c.trim "+repage"
       end
 
