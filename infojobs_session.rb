@@ -6,10 +6,12 @@ class InfojobsSession
   MAIN_URL = "https://www.infojobs.net/distil_verify"
 
   def initialize
-    @http = Tweakphoeus::Client.new
+
+
   end
 
   def obtain_session
+    @http = Tweakphoeus::Client.new
     error = false
 
     request = Nokogiri::HTML(@http.get(MAIN_URL).body)
@@ -32,7 +34,7 @@ class InfojobsSession
         captcha_image_1 = funcaptcha_frame.css("input.pic-1").first.attr("src")
       rescue
         puts http_req
-        raise
+        
       end
       result = Solver.solve_image(captcha_image_1)
 
@@ -66,7 +68,7 @@ class InfojobsSession
       Solver.check_as_successful(results)
       token = funcaptcha_frame.css("input").attr("value")
       body = { "fc-token" => token, V: 0, RM: "GET" }
-      @http.post("https://www.infojobs.net/distil_verify", body: body)
+      puts @http.post("https://www.infojobs.net/distil_verify", body: body).body
       return @http
     end 
   end

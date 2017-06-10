@@ -6,7 +6,7 @@ require "fileutils"
 
 class Solver
   
-  THRESHOLD = 15
+  THRESHOLD = 10
   OPTIONS = [40, 80, 120, 160, 200, 240, 280, 320]
   
   class << self
@@ -48,7 +48,7 @@ class Solver
           next if index1 <= index2
           puts "x: #{index1}, y: #{index2}"
 
-          if element1.duplicate?(element2, threshold: 1)
+          if element1.duplicate?(element2, threshold: 3)
             puts "discarded"
             discarded << element1.filename
           end
@@ -126,12 +126,13 @@ class Solver
           
           if option_file.duplicate?(key_frame, threshold: THRESHOLD)
             is_valid ||= true
-            matches[option] = option_file.distance_from(key_frame)
+            matches[option] = { distance: option_file.distance_from(key_frame), file: key_frame.filename }
           end
         end
       end
       if is_valid
-        best_match = matches.sort_by{|key, value| value}.first
+        best_match = matches.sort_by{ |key, value| value[:distance] }.first
+        puts best_match.last[:file]
         return best_match.first
       else
         puts "NOPE!!! (╯°□°）╯︵ ┻━┻"
