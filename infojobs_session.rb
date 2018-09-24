@@ -5,11 +5,6 @@ require_relative 'solver.rb'
 class InfojobsSession
   MAIN_URL = "https://www.infojobs.net/distil_verify"
 
-  def initialize
-
-
-  end
-
   def obtain_session
     @http = Tweakphoeus::Client.new
     error = false
@@ -23,30 +18,30 @@ class InfojobsSession
 
     http_req = @http.get(iframe_url).body
     funcaptcha_frame = Nokogiri::HTML(http_req)
-          
+
     results = []
-    
+
     5.times do
 
-      begin    
+      begin
         elements = funcaptcha_frame.css("form.imgInput-1")
 
         captcha_image_1 = funcaptcha_frame.css("input.pic-1").first.attr("src")
       rescue
         puts http_req
-        
+        error = true
       end
+
       result = Solver.solve_image(captcha_image_1)
 
       results << result
 
       if result[:error].nil?
-      
         correct_option = result[:option]
         correct_entry = elements[correct_option]
         x = rand(50..100)
         y = rand(50..100)
-      
+
         body = { x: x,
                  y: y,
                  "fc-game[session_token]" => correct_entry.css("input")[1].attr("value"),
@@ -70,6 +65,6 @@ class InfojobsSession
       body = { "fc-token" => token, V: 0, RM: "GET" }
       puts @http.post("https://www.infojobs.net/distil_verify", body: body).body
       return @http
-    end 
+    end
   end
 end

@@ -5,16 +5,18 @@ require 'launchy'
 require "fileutils"
 
 class Solver
-  
+
   THRESHOLD = 10
   OPTIONS = [40, 80, 120, 160, 200, 240, 280, 320]
-  
+
   class << self
 
     def solve_image(url)
       path = obtain_image(url)
       correct_image_path = obtain_valid_option(path, obtain_key_frame_array)
+
       puts path
+
       if correct_image_path
         option = correct_image_path.split(".").first.split("-").last.to_i
         id = correct_image_path.split("/").last[10..-7]
@@ -30,7 +32,7 @@ class Solver
         FileUtils.mv("/tmp/funcaptcha#{value[:id]}-#{value[:option]}.jpg", "candidate_keyframes/")
       end
     end
-    
+
     def check_as_bad_resolved(values)
       values.each do |value|
         Dir.glob("/tmp/funcaptcha#{value[:id]}*").each do |file|
@@ -42,7 +44,7 @@ class Solver
     def discard_repeated_key_frames
       key_frame_array = obtain_key_frame_array
       discarded = []
-      
+
       key_frame_array.each_with_index do |element1, index1|
         key_frame_array.each_with_index do |element2, index2|
           next if index1 <= index2
@@ -65,14 +67,14 @@ class Solver
       `rm /tmp/funcaptcha*`
       `rm /tmp/mini_*`
     end
-    
+
     private
 
     def obtain_image(url)
       file = Tempfile.new(["funcaptcha#{Time.now.to_i}", ".jpg"])
       tmp_image_path = file.path
       file.close
-      
+
       image = MiniMagick::Image.open(url)
 
       image.combine_options do |c|
@@ -90,7 +92,7 @@ class Solver
 
     def generate_options(image_path)
       image_options = []
-      
+
       OPTIONS.each_with_index do |rotate_option, i|
         dest_path = image_path.split(".")[0] + "-" + i.to_s + ".jpg"
         rotate_image(image_path, dest_path, rotate_option)
@@ -108,7 +110,7 @@ class Solver
         c.trim "+repage"
         c.resize "100x100"
       end
-      
+
       image.write(dest_path)
     end
 
@@ -123,7 +125,7 @@ class Solver
       options.each do |option|
         key_frames.each do |key_frame|
           option_file = phash_from_file(option)
-          
+
           if option_file.duplicate?(key_frame, threshold: THRESHOLD)
             is_valid ||= true
             matches[option] = { distance: option_file.distance_from(key_frame), file: key_frame.filename }
@@ -149,10 +151,5 @@ class Solver
         end
       end
     end
-
-    def open_file(path)
-      Launchy.open(path)
-    end
-
   end
 end
